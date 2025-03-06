@@ -28,7 +28,7 @@
             max-width: 500px; /* מגביל רוחב */
         }
 
-        .form-container, .chart-container, .expenses-list, .budget-container {
+        .form-container,  .expenses-list {
             background-color: #fff;
             padding: 20px;
             margin-bottom: 20px;
@@ -104,23 +104,13 @@
         <!-- טופס הוספת הוצאה -->
         <div class="form-container">
          
-            <label for="category">מסלול:</label>
-<select id="category">
-  <option selected="" disabled="true">בחר מסלול</option>
-</select>
-<label for="agent">סוכן:</label>
-<select id="agent">
-    <option selected="" disabled="true">בחר סוכן</option>
-    <option>משה</option>
-    <option>גילה</option>
-    <option>יפעת</option>
-    <option>תמיר</option>
-    <option>מנחם</option>
-    <option>אבי</option>
-    <option>נירית</option>
-    <option>שלומית</option>
+        <label for="category">מסלול:</label>
+        <input type="text" id="category"></input>
 
-  </select>
+        <label for="agent">סוכן:</label>
+        <input type="text" id="agent"></input>
+   
+
 
             <label for="amount">סכום לתשלום:</label>
             <input type="number" id="amount" step="0.01" required>
@@ -151,19 +141,9 @@
             </table>
         </div>
         <div class="budget-container">
-            <h2>מעקב תשלומים</h2>
-            <label for="monthlyBudget">הכנס יעד הכנסות חודשי:</label>
-            <input type="number" id="monthlyBudget" step="0.01">
-            <button onclick="setBudget()">הגדר תקציב</button>
             <p>סך הכנסות: <span id="totalExpenses">0</span></p>
-            <p>יתרה: <span id="remainingBudget">0</span></p>
         </div>
-        <!-- גרף התפלגות -->
-        <div class="chart-container">
-            <h2>גרף התפלגות הכנסות</h2>
-            <canvas id="expenseChart"></canvas>
-            <canvas id="barChart"></canvas>
-        </div>
+        
 
         <!-- רשימת הוצאות -->
         
@@ -175,7 +155,7 @@
     <script>
       const expenseslist = ['מסלול1','מסלול2','מסלול3','מסלול4','מסלול5','מסלול6'];
 let expenses = [];
-let monthlyBudget = 0;
+
 
 const select = document.getElementById('category');
 
@@ -189,8 +169,8 @@ for (let i = 0; i < expenseslist.length; i++) {
             localStorage.removeItem('expenses');
             expenses = [];
             updateExpensesList();
-            updateChart();
-            updateBudget();
+           
+            
         }
 
         function loadData() {
@@ -199,20 +179,15 @@ for (let i = 0; i < expenseslist.length; i++) {
                 expenses = JSON.parse(savedExpenses);
             }
 
-            const savedBudget = localStorage.getItem('monthlyBudget');
-            if (savedBudget) {
-                monthlyBudget = parseFloat(savedBudget);
-                document.getElementById('monthlyBudget').value = monthlyBudget;
-            }
+            
 
             updateExpensesList();
-            updateChart();
-            updateBudget();
+           
         }
 
         function saveData() {
             localStorage.setItem('expenses', JSON.stringify(expenses));
-            localStorage.setItem('monthlyBudget', monthlyBudget.toString());
+            
         }
 
         function addExpense() {
@@ -220,7 +195,6 @@ for (let i = 0; i < expenseslist.length; i++) {
             const amount = parseFloat(document.getElementById('amount').value);
             const agentx = document.getElementById('agent').value;
             var date = document.getElementById('date').value;
-            console.log(date.slice(0,4),date.slice(5,7),date.slice(8,10))
             date=date.slice(8,10)+'.'+
             date.slice(5,7)+'.'+date.slice(0,4);
             if (!category || !amount || !date) {
@@ -230,89 +204,53 @@ for (let i = 0; i < expenseslist.length; i++) {
 
             expenses.push({ category,agentx, amount, date });
             updateExpensesList();
-            updateChart();
-            updateBudget();
             saveData();
             document.getElementById('amount').value = '';
             document.getElementById('date').value = '';
         }
-
-        function updateExpensesList() {
+        function updateTotalIncome(){
+           
             const tbody = document.querySelector('#expensesTable tbody');
-            tbody.innerHTML = '';
-            expenses.forEach(expense => {
-                const row = document.createElement('tr');
-                row.innerHTML = `
-                    <td>${expense.category}</td>
-                     <td>${expense.agentx}</td>
-                    <td>${expense.amount.toLocaleString()}</td>
-                    <td>${expense.date}</td>
-                    <td style='display:flex;flex-direction:column;
-                    align-items:center;margin-top:10px;'><input type="text" style="transform:scaleY(0.5)"></input></td>
-                `;
-                tbody.appendChild(row);
-            });
-        }
-function updateChart() {
-    const categories = [...new Set(expenses.map(expense => expense.category))];
-    const data = categories.map(category => {
-        return expenses.filter(expense => expense.category === category)
-                    .reduce((sum, expense) => sum + expense.amount, 0);
-    });
-
-    const ctxPie = document.getElementById('expenseChart').getContext('2d');
-    if (window.myPieChart) {
-        window.myPieChart.destroy();
-    }
-    window.myPieChart = new Chart(ctxPie, {
-        type: 'pie',
-        data: {
-            labels: categories,
-            datasets: [{
-                data: data,
-                backgroundColor: ['#FF6384', '#36A2EB', '#FFCE56', '#4CAF50', '#9966FF', '#FF9F40']
-            }]
-        }
-    });
-
-    const ctxBar = document.getElementById('barChart').getContext('2d');
-    if (window.myBarChart) {
-        window.myBarChart.destroy();
-    }
-    window.myBarChart = new Chart(ctxBar, {
-        type: 'bar',
-        data: {
-            labels: categories,
-            datasets: [{
-                label: 'סכום הכנסה לפי מסלול',
-                data: data,
-                backgroundColor: '#36A2EB',
-                borderColor: '#1E88E5',
-                borderWidth: 1
-            }]
-        },
-        options: {
-            responsive: true,
-            scales: {
-                y: {
-                    beginAtZero: true
+            const trbody=tbody.querySelectorAll('tr')
+            var expensesTotal=0;
+            trbody.forEach(tr=>{
+                const tdText = tr.children[2]?.textContent.trim(); 
+                const cleanNumber = Number(tdText.replace(/[^\d.-]/g, "")); // מסיר תווים לא מספריים
+                
+                if(tr.children[4].children[0].value==='שולם'){
+                expensesTotal=expensesTotal+cleanNumber
                 }
-            }
+               
+            })
+            document.getElementById('totalExpenses').innerHTML=expensesTotal.toLocaleString();
         }
+        function updateExpensesList() {
+    const tbody = document.querySelector('#expensesTable tbody');
+    tbody.innerHTML = '';
+    expenses.forEach((expense, index) => {
+        const row = document.createElement('tr');
+        row.innerHTML = `
+            <td>${expense.category}</td>
+            <td>${expense.agentx}</td>
+            <td>${expense.amount.toLocaleString()}</td>
+            <td>${expense.date}</td>
+            <td style='display:flex;flex-direction:column; align-items:center;width:60px;margin-top:10px;'>
+                <input type="text" value="${expense.status || ''}" onchange="updateStatus(${index}, this.value)" style="transform:scaleY(0.5)">
+            </td>
+        `;
+        tbody.appendChild(row);
     });
+    updateTotalIncome();
 }
 
-        function updateBudget() {
-            const totalExpenses = expenses.reduce((sum, expense) => sum + expense.amount, 0);
-            document.getElementById('totalExpenses').textContent = totalExpenses.toLocaleString();
-            document.getElementById('remainingBudget').textContent = (monthlyBudget - totalExpenses).toLocaleString();
-        }
+function updateStatus(index, value) {
+    expenses[index].status = value;
+    saveData();
+    updateTotalIncome();
+}
 
-        function setBudget() {
-            monthlyBudget = parseFloat(document.getElementById('monthlyBudget').value);
-            updateBudget();
-            saveData();
-        }
+        
+
 
         window.onload = loadData;
         
