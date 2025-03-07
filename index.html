@@ -5,36 +5,38 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>מעקב טיולי דרך</title>
     <style>
-    *{
-      max-width: 100%;
-            box-sizing: border-box;overflow-x: hidden;
+        * {
+            max-width: 100%;
+            box-sizing: border-box;
+            overflow-x: hidden;
         }
-        #tbl, #tbl tr{
-    }
         body {
             font-family: Arial, sans-serif;
             margin: 20px;
             padding: 20px;
             background-color: #f4f4f4;
             max-width: 100%;
-            box-sizing: border-box;overflow-x: hidden;
+            box-sizing: border-box;
+            overflow-x: hidden;
             display: flex;
             flex-direction: column;
             align-items: center;
         }
-        #tbl, #tbl tr{
-          max-width: 90%;
-          box-sizing: border-box;margin:0;padding: 0;
-          margin-top: 20px;
+        #tbl, #tbl tr {
+            max-width: 100%;
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            margin-top: 20px;
             border-collapse: collapse;
             background: white;
-        overflow-X:hidden;
-        font-size: 10px;
+            overflow-x: hidden;
+            font-size: 10px;
         }
         h2 { text-align: center; }
         .container {
             max-width: 600px;
-            min-width: 90vw;
+            min-width: 100vw;
             background: white;
             padding: 20px;
             border-radius: 10px;
@@ -43,16 +45,15 @@
             flex-direction: column;
             align-items: center;
             overflow-x: hidden;
-            
-            
         }
         input, button {
-            width: 80%;
+            width: 90%;
             padding: 8px;
             margin: 5px 0;
             border: 1px solid #ccc;
             border-radius: 5px;
-        text-align:center}
+            text-align: center;
+        }
         button {
             background: #28a745;
             color: white;
@@ -60,12 +61,11 @@
             cursor: pointer;
         }
         button:hover { background: #218838; }
-        
         th, td {
             border: 1px solid #ddd;
             padding: 8px;
             text-align: center;
-           max-width: 16.6vw;
+            max-width: 16.6vw;
         }
         th { background: #007bff; color: white; }
         .delete-btn {
@@ -157,7 +157,7 @@
             row.innerHTML = `
                 <td>${trip.tripName}</td>
                 <td>${trip.agentName}</td>
-                <td>${trip.amount.toFixed(2)}</td>
+                <td>${trip.amount.toLocaleString('he-IL', { style: 'currency', currency: 'ILS' })}</td>
                 <td>${trip.tripDate}</td>
                 <td><input type="checkbox" ${trip.paid ? "checked" : ""} onchange="togglePaid(${index})"></td>
                 <td><button class="delete-btn" onclick="deleteTrip(${index})">🗑</button></td>
@@ -171,7 +171,7 @@
         let trips = JSON.parse(localStorage.getItem("trips")) || [];
         trips[index].paid = !trips[index].paid;
         localStorage.setItem("trips", JSON.stringify(trips));
-        updateTotal();
+        loadTrips();
     }
 
     function deleteTrip(index) {
@@ -184,7 +184,7 @@
     function updateTotal() {
         let trips = JSON.parse(localStorage.getItem("trips")) || [];
         let totalPaid = trips.reduce((sum, trip) => trip.paid ? sum + trip.amount : sum, 0);
-        document.getElementById("totalPaid").textContent = totalPaid.toFixed(2);
+        document.getElementById("totalPaid").textContent = totalPaid.toLocaleString('he-IL', { style: 'currency', currency: 'ILS' });
     }
 
     function clearAll() {
