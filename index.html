@@ -1,261 +1,199 @@
 <!DOCTYPE html>
-<html lang="he">
+<html lang="he" dir="rtl">
 <head>
-    <!--<link rel="manifest" href="manifest.json">-->
-     <script>
-    if ("serviceWorker" in navigator) {
-        navigator.serviceWorker.register("sw.js");
-    }
-    </script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>מעקב הכנסות חודשיות</title>
+    <title>מעקב טיולי דרך</title>
     <style>
+    *{
+      max-width: 100%;
+            box-sizing: border-box;overflow-x: hidden;
+        }
+        #tbl, #tbl tr{
+    }
         body {
             font-family: Arial, sans-serif;
-            direction: rtl;
+            margin: 20px;
+            padding: 20px;
             background-color: #f4f4f4;
-            margin: 0;
-            padding: 20px;
+            max-width: 100%;
+            box-sizing: border-box;overflow-x: hidden;
             display: flex;
-            justify-content: center; /* ממקם במרכז המסך */
-            align-items: flex-start;
-            min-height: 100vh;
+            flex-direction: column;
+            align-items: center;
         }
-
+        #tbl, #tbl tr{
+          max-width: 90%;
+          box-sizing: border-box;margin:0;padding: 0;
+          margin-top: 20px;
+            border-collapse: collapse;
+            background: white;
+        overflow-X:hidden;
+        font-size: 10px;
+        }
+        h2 { text-align: center; }
         .container {
-            width: 100%;
-            max-width: 500px; /* מגביל רוחב */
-        }
-
-        .form-container,  .expenses-list {
-            background-color: #fff;
+            max-width: 600px;
+            min-width: 90vw;
+            background: white;
             padding: 20px;
-            margin-bottom: 20px;
-            border-radius: 8px;
+            border-radius: 10px;
             box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            overflow-x: hidden;
+            
+            
         }
-
-        label {
-            display: block;
-            margin-bottom: 5px;
-            font-weight: bold;
-        }
-
-        input, select, button {
-            width: 100%;
-            padding: 10px;
-            margin-bottom: 10px;
+        input, button {
+            width: 80%;
+            padding: 8px;
+            margin: 5px 0;
             border: 1px solid #ccc;
-            border-radius: 4px;
-            box-sizing: border-box;
-        }
-
+            border-radius: 5px;
+        text-align:center}
         button {
-            background-color: #28a745;
-            color: #fff;
+            background: #28a745;
+            color: white;
             border: none;
             cursor: pointer;
         }
-
-        button:hover {
-            background-color: #218838;
-        }
-
-        /* מוודא שהכפתורים מוצגים כראוי */
-        .button-group {
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-        }
-
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 10px;
-            font-size: 10px;
-        }
-
+        button:hover { background: #218838; }
+        
         th, td {
-            padding: 10px;
-            text-align: right;
-            border-bottom: 1px solid #ddd;
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: center;
+           max-width: 16.6vw;
         }
-
-        th {
-            background-color: #f8f9fa;
+        th { background: #007bff; color: white; }
+        .delete-btn {
+            background: red;
+            color: white;
+            border: none;
+            padding: 5px;
+            cursor: pointer;
         }
-
-        canvas {
-            max-width: 100%;
-            height: auto;
-        }
-        #clrexp{
-            background-color:orange;
-        }
+        .delete-btn:hover { background: darkred; }
     </style>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
-  
-    <div class="container" id='container'>
-        <h1>מעקב הכנסות חודשיות</h1>
 
-        <!-- טופס הוספת הוצאה -->
-        <div class="form-container">
-         
-        <label for="category">מסלול:</label>
-        <input type="text" id="category"></input>
+<div class="container">
+    <h2>מעקב טיולי דרך</h2>
+    
+    <label>מסלול הטיול:</label>
+    <input type="text" id="tripName">
+    
+    <label>שם הסוכן:</label>
+    <input type="text" id="agentName">
+    
+    <label>סכום לתשלום:</label>
+    <input type="number" id="amount">
+    
+    <label>תאריך:</label>
+    <input type="date" id="tripDate">
+    
+    <button onclick="addTrip()">הוסף טיול</button>
+    
+    <table id='tbl'>
+        <thead>
+            <tr>
+                <th style='max-width:16.6vw'>מסלול</th>
+                <th style='max-width:16.6vw'>סוכן</th>
+                <th style='max-width:16.6vw'>סכום</th>
+                <th style='max-width:16.6vw'>תאריך</th>
+                <th style='max-width:16.6vw'>שולם</th>
+                <th style='max-width:16.6vw'>מחיקה</th>
+            </tr>
+        </thead>
+        <tbody id="tripTableBody"></tbody>
+        <tfoot>
+            <tr>
+                <th colspan="2">סה"כ שולם:</th>
+                <th id="totalPaid">0</th>
+                <th colspan="3"></th>
+            </tr>
+        </tfoot>
+    </table>
+    
+    <button onclick="clearAll()">נקה הכל</button>
+</div>
 
-        <label for="agent">סוכן:</label>
-        <input type="text" id="agent"></input>
-   
+<script>
+    document.addEventListener("DOMContentLoaded", loadTrips);
 
+    function addTrip() {
+        let tripName = document.getElementById("tripName").value;
+        let agentName = document.getElementById("agentName").value;
+        let amount = parseFloat(document.getElementById("amount").value) || 0;
+        let tripDate = document.getElementById("tripDate").value;
 
-            <label for="amount">סכום לתשלום:</label>
-            <input type="number" id="amount" step="0.01" required>
-
-            <label for="date">תאריך:</label>
-            <input type="date" id="date" required>
-           
-            
-
-            <div class="button-group">
-                <button onclick="addExpense()">הוסף</button>
-                <button id='clrexp' onclick="clearExpenses()"> נקה-בתחילת חודש</button>
-            </div>
-        </div>
-        <div class="expenses-list">
-            <h2>רשימת הכנסות</h2>
-            <table id="expensesTable">
-                <thead>
-                    <tr>
-                        <th>מסלול</th>
-                        <th>סוכן</th>
-                        <th>סכום לתשלום</th>
-                        <th>תאריך</th>
-                        <th>סטטוס</th>
-                    </tr>
-                </thead>
-                <tbody></tbody>
-            </table>
-        </div>
-        <div class="budget-container">
-            <p>סך הכנסות: <span id="totalExpenses">0</span></p>
-        </div>
-        
-
-        <!-- רשימת הוצאות -->
-        
-
-        <!-- תקציב חודשי -->
-        
-    </div>
-
-    <script>
-      const expenseslist = ['מסלול1','מסלול2','מסלול3','מסלול4','מסלול5','מסלול6'];
-let expenses = [];
-
-
-const select = document.getElementById('category');
-
-for (let i = 0; i < expenseslist.length; i++) {
-  const opt = document.createElement("option"); // תיקון השגיאה
-  opt.value = expenseslist[i];
-  opt.textContent = expenseslist[i];
-  select.appendChild(opt);
-}
-        function clearExpenses() {
-            localStorage.removeItem('expenses');
-            expenses = [];
-            updateExpensesList();
-           
-            
+        if (!tripName || !agentName || !tripDate || amount <= 0) {
+            alert("יש למלא את כל השדות כראוי.");
+            return;
         }
 
-        function loadData() {
-            const savedExpenses = localStorage.getItem('expenses');
-            if (savedExpenses) {
-                expenses = JSON.parse(savedExpenses);
-            }
+        let trips = JSON.parse(localStorage.getItem("trips")) || [];
+        trips.push({ tripName, agentName, amount, tripDate, paid: false });
+        localStorage.setItem("trips", JSON.stringify(trips));
 
-            
+        document.getElementById("tripName").value = "";
+        document.getElementById("agentName").value = "";
+        document.getElementById("amount").value = "";
+        document.getElementById("tripDate").value = "";
 
-            updateExpensesList();
-           
+        loadTrips();
+    }
+
+    function loadTrips() {
+        let trips = JSON.parse(localStorage.getItem("trips")) || [];
+        let tableBody = document.getElementById("tripTableBody");
+        tableBody.innerHTML = "";
+
+        trips.forEach((trip, index) => {
+            let row = tableBody.insertRow();
+            row.innerHTML = `
+                <td>${trip.tripName}</td>
+                <td>${trip.agentName}</td>
+                <td>${trip.amount.toFixed(2)}</td>
+                <td>${trip.tripDate}</td>
+                <td><input type="checkbox" ${trip.paid ? "checked" : ""} onchange="togglePaid(${index})"></td>
+                <td><button class="delete-btn" onclick="deleteTrip(${index})">🗑</button></td>
+            `;
+        });
+
+        updateTotal();
+    }
+
+    function togglePaid(index) {
+        let trips = JSON.parse(localStorage.getItem("trips")) || [];
+        trips[index].paid = !trips[index].paid;
+        localStorage.setItem("trips", JSON.stringify(trips));
+        updateTotal();
+    }
+
+    function deleteTrip(index) {
+        let trips = JSON.parse(localStorage.getItem("trips")) || [];
+        trips.splice(index, 1);
+        localStorage.setItem("trips", JSON.stringify(trips));
+        loadTrips();
+    }
+
+    function updateTotal() {
+        let trips = JSON.parse(localStorage.getItem("trips")) || [];
+        let totalPaid = trips.reduce((sum, trip) => trip.paid ? sum + trip.amount : sum, 0);
+        document.getElementById("totalPaid").textContent = totalPaid.toFixed(2);
+    }
+
+    function clearAll() {
+        if (confirm("האם אתה בטוח שברצונך למחוק את כל הנתונים?")) {
+            localStorage.removeItem("trips");
+            loadTrips();
         }
+    }
+</script>
 
-        function saveData() {
-            localStorage.setItem('expenses', JSON.stringify(expenses));
-            
-        }
-
-        function addExpense() {
-            const category = document.getElementById('category').value;
-            const amount = parseFloat(document.getElementById('amount').value);
-            const agentx = document.getElementById('agent').value;
-            var date = document.getElementById('date').value;
-            date=date.slice(8,10)+'.'+
-            date.slice(5,7)+'.'+date.slice(0,4);
-            if (!category || !amount || !date) {
-                alert('נא למלא את כל השדות');
-                return;
-            }
-
-            expenses.push({ category,agentx, amount, date });
-            updateExpensesList();
-            saveData();
-            document.getElementById('amount').value = '';
-            document.getElementById('date').value = '';
-        }
-        function updateTotalIncome(){
-           
-            const tbody = document.querySelector('#expensesTable tbody');
-            const trbody=tbody.querySelectorAll('tr')
-            var expensesTotal=0;
-            trbody.forEach(tr=>{
-                const tdText = tr.children[2]?.textContent.trim(); 
-                const cleanNumber = Number(tdText.replace(/[^\d.-]/g, "")); // מסיר תווים לא מספריים
-                
-                if(tr.children[4].children[0].value==='שולם'){
-                expensesTotal=expensesTotal+cleanNumber
-                }
-               
-            })
-            document.getElementById('totalExpenses').innerHTML=expensesTotal.toLocaleString();
-        }
-        function updateExpensesList() {
-    const tbody = document.querySelector('#expensesTable tbody');
-    tbody.innerHTML = '';
-    expenses.forEach((expense, index) => {
-        const row = document.createElement('tr');
-        row.innerHTML = `
-            <td>${expense.category}</td>
-            <td>${expense.agentx}</td>
-            <td>${expense.amount.toLocaleString()}</td>
-            <td>${expense.date}</td>
-            <td style='display:flex;flex-direction:column; align-items:center;width:100px;margin-top:10px;'>
-                <input type="text" value="${expense.status || ''}" onchange="updateStatus(${index}, this.value)" style="transform:scaleY(0.5)">
-            </td>
-        `;
-        tbody.appendChild(row);
-    });
-    updateTotalIncome();
-}
-
-function updateStatus(index, value) {
-    expenses[index].status = value;
-    saveData();
-    updateTotalIncome();
-}
-
-        
-
-
-        window.onload = loadData;
-        
-        
-    </script>
 </body>
 </html>
-
